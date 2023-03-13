@@ -5,8 +5,8 @@ from urllib.parse import urlparse
 # from fastapi.responses import PlainTextResponse
 # from pydantic import BaseModel
 
-#import download
-#download.downloadData()
+import download
+download.downloadData()
 
 app = FastAPI()
 
