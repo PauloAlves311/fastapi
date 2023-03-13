@@ -5,9 +5,13 @@ from urllib.parse import urlparse
 # from fastapi.responses import PlainTextResponse
 # from pydantic import BaseModel
 
+import download
+download.downloadData()
+
 app = FastAPI()
 
 load = json.load(open("data.json"))["imoveis"]["imovel"]
+
 
 @app.get("/")
 async def read_index():
@@ -63,7 +67,6 @@ async def find_house(house_id: str):
                 "anoconstrucao": house["construcaoano"],
                 "nquartos": house["nquartos"],
                 "preco": house["precoweb"],
-                
             }
     return imovel
 
