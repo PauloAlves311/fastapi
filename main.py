@@ -15,6 +15,8 @@ load = json.load(open("data.json"))["imoveis"]["imovel"]
 
 @app.get("/")
 async def read_index(
+    page: int = 1,
+    limit: int = 20,
     zona: str = None,
     min_price: int = None,
     max_price: int = None,
@@ -56,10 +58,24 @@ async def read_index(
 
         if house["destaque"] == "1":
             destaque += 1
-    print(destaque)
-    print(len(houses))
 
-    return houses
+    # Calculate the start and end indexes of the slice
+    start = (page - 1) * limit
+    end = start + limit
+
+    # Slice the houses list to return only the requested items
+    paginated_houses = houses[start:end]
+
+    # print(destaque)
+    # print(len(houses))
+
+    # return houses
+
+    return {
+        "count": len(houses),
+        "destaque_count": destaque,
+        "houses": paginated_houses,
+    }
 
             
 
