@@ -24,7 +24,10 @@ async def read_index(
     obj: Optional[str] = None,
     zona: Optional[str] = None,
     apiKey: Optional[str] = None,
+    nQuartos: Optional[int] = None,
+    showExactMatches: Optional[bool] = False,
     ):
+
     houses = []
     destaque = 0
 
@@ -38,7 +41,10 @@ async def read_index(
             elif type(imagem) is dict:
                 if imagem["principal"] == "1":
                     url = "https://cdn1.ximocrm.com/i/704ED61D-335D-46AF-813E-00DD2E2BB6F4_" + house["id"] + "_0______" + urlparse(imagem["url"]).path.rsplit('/', 1)[-1]
-        
+            # Might need this code for imagem that are not str, but are dict, and have no principal. But note that this code is like the first line, so might not ened elif statement.
+            # else:
+            #     url = "https://cdn1.ximocrm.com/i/704ED61D-335D-46AF-813E-00DD2E2BB6F4_" + house["id"] + "_0______" + urlparse(imagem["url"]).path.rsplit('/', 1)[-1]
+
         if "Land" in house["tipo"]["#text"] or "Plot" in house["tipo"]["#text"]:
             titulo = house["tipo"]["#text"]
         else:
@@ -53,6 +59,18 @@ async def read_index(
         if (min_price and int(house["precoweb"]) < min_price) or (max_price and int(house["precoweb"]) > max_price):
             continue
 
+        # if nQuartos and int(house["nquartos"]) != nQuartos:
+        #     continue
+
+        if nQuartos:
+            if showExactMatches and int(house["nquartos"]) != nQuartos:
+                continue
+            elif not showExactMatches and int(house["nquartos"]) < nQuartos:
+                continue
+
+        if house["destaque"] == "1":
+            destaque += 1
+
         houses.append({
             "id": house["id"],
             "sort": house["ref"],
@@ -63,9 +81,6 @@ async def read_index(
             "nQuartos": house["nquartos"],
             "imagem": url,
              })
-
-        if house["destaque"] == "1":
-            destaque += 1
 
 
     # Calculate the start and end indexes of the slice
