@@ -1,9 +1,11 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException
 import json
 from urllib.parse import urlparse
+from typing import Optional, Union
+from pydantic import BaseModel
 # from typing import Union
 # from fastapi.responses import PlainTextResponse
-# from pydantic import BaseModel
+
 
 import download
 download.downloadData()
@@ -15,15 +17,20 @@ load = json.load(open("data.json"))["imoveis"]["imovel"]
 
 @app.get("/")
 async def read_index(
-    page: int = 1,
-    limit: int = 20,
-    zona: str = None,
-    min_price: int = None,
-    max_price: int = None,
-    obj: str = None,
+    page: Optional[int] = 1,
+    limit: Optional [int] = 20,
+    min_price: Optional[int] = None,
+    max_price: Optional[int] = None,
+    obj: Optional[str] = None,
+    zona: Optional[str] = None,
+    apiKey: Optional[str] = None,
     ):
     houses = []
     destaque = 0
+
+    if apiKey != "aBAajadf28318aAJSlas892394NQalsASJD893124lasdSADLshdoashsfo":
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
     for house in load:
         for imagem in house["multimedia"]["imagem"]:
             if type(imagem) is str:
@@ -53,11 +60,13 @@ async def read_index(
             "zona": house["localidade"],
             "preco": house["precoweb"],
             "objectivo": house["objectivo"]["#text"],
+            "nQuartos": house["nquartos"],
             "imagem": url,
              })
 
         if house["destaque"] == "1":
             destaque += 1
+
 
     # Calculate the start and end indexes of the slice
     start = (page - 1) * limit
@@ -66,18 +75,19 @@ async def read_index(
     # Slice the houses list to return only the requested items
     paginated_houses = houses[start:end]
 
-    # print(destaque)
-    # print(len(houses))
+    # Calculate the total number of pages
+    total_pages = (len(houses) + limit - 1) // limit
 
     # return houses
-
     return {
+        # "start_index": start,
+        # "end_index": end,
+        "total_pages": total_pages,
         "count": len(houses),
         "destaque_count": destaque,
         "houses": paginated_houses,
     }
 
-            
 
 
 @app.get("/house/{house_id}")
@@ -126,15 +136,27 @@ async def find_media(house_id: str):
 
 
 
-
-
-
-
-@app.get("/houseOriginal/{house_id}")
-async def find_house(house_id: str):
+@app.get("/localidades")
+async def get_localidades():
+    localidades = set()
     for house in load:
-        if house_id == house["id"]:
-            return house
+        localidades.add(house["localidade"])
+    localidades_list = list(localidades)
+    localidades_list.sort()
+    return {"location": localidades_list}
+
+
+
+
+
+
+
+
+# @app.get("/houseOriginal/{house_id}")
+# async def find_house(house_id: str):
+#     for house in load:
+#         if house_id == house["id"]:
+#             return house
 
 
 
